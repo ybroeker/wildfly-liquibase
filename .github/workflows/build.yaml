@@ -36,7 +36,7 @@ jobs:
       - name: Set up JDK ${{ matrix.java }}
         uses: joschi/setup-jdk@v2
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 11
       - name: Build - JDK ${{ matrix.java }}
         run: ./mvnw process-sources -ntp -B -P licenseCheck
 
@@ -84,6 +84,10 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Set up JDK ${{ matrix.java }}
+        uses: joschi/setup-jdk@v2
+        with:
+          java-version: 11
       - name: Build docker image
         env:
           BUILD_TAG: ${{ steps.release.outputs.tag }}
