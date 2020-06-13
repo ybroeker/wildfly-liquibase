@@ -12,24 +12,18 @@ if [[ "${POM_WF_VERSION}" != "${DOCKERFILE_WF_VERSION}" ]]; then
   fi
 fi
 
-if [[ "${TRAVIS_JDK_VERSION}" == "openjdk11" ]]; then
+./mvnw -B -ntp clean package -pl distro -am
 
-  if [[ ! -d ${TRAVIS_BUILD_DIR}/distro/target ]];
-  then
-    mvn clean package -pl distro -am
+docker build -t jamesnetherton/wildfly-liquibase .
+
+if [[ ! -z "${DOCKER_USERNAME}" ]] && [[ ! -z "${DOCKER_PASSWORD}" ]]; then
+  echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+  docker push jamesnetherton/wildfly-liquibase:latest
+
+  if [[ ! -z "${BUILD_TAG}" ]]; then
+    docker tag jamesnetherton/wildfly-liquibase:latest jamesnetherton/wildfly-liquibase:${BUILD_TAG}
+    docker push jamesnetherton/wildfly-liquibase:${BUILD_TAG}
   fi
 
-  docker build -t jamesnetherton/wildfly-liquibase .
-
-  if [[ ! -z "${DOCKER_USERNAME}" ]] && [[ ! -z "${DOCKER_PASSWORD}" ]]; then
-    echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-    docker push jamesnetherton/wildfly-liquibase:latest
-
-    if [[ ! -z "${TRAVIS_TAG}" ]]; then
-      docker tag jamesnetherton/wildfly-liquibase:latest jamesnetherton/wildfly-liquibase:${TRAVIS_TAG}
-      docker push jamesnetherton/wildfly-liquibase:${TRAVIS_TAG}
-    fi
-    
-    docker logout
-  fi
+  docker logout
 fi
